@@ -1,21 +1,37 @@
 ---
-import Counter from "../components/Counter";
+import BaseLayout  from "../layouts/BaseLayout.astro";
+
+const articles = [
+  {
+    title: "Astro 入门",
+    description: "学习 Astro 的基础架构",
+  },
+  {
+    title: "React Islands",
+    description: "理解 Astro 中的 React",
+  },
+  {
+    title: "Astro Content Collections",
+    description: "构建技术博客内容系统",
+  },
+  {
+	title: "Python 网络编程",
+	description: "使用 Python 学习 TCP/IP",
+ }
+];
 ---
 
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>TechHub - Astro 实战</title>
-  </head>
-
-  <body>
+<BaseLayout>
     <h1>TechHub</h1>
 
-    <p>这是 Astro 生成的静态 HTML。</p>
-
-    <hr />
-	<!-- 加载js指令 -->
-    <Counter client:load />
-  </body>
-</html>
+    <section>
+		{
+			articles.map((article)=>
+				<article>
+					<h2>{article.title}</h2>
+					<p>{article.description}</p>
+				</article>
+			)
+		}
+	</section>
+</BaseLayout>
