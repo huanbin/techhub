@@ -1,26 +1,38 @@
 ---
 import BaseLayout  from "../../layouts/BaseLayout.astro";
-import {articles}  from "../../data/articles";
+import { getCollection } from "astro:content";
+import { render } from "astro:content";
 
 // 指定要静态生成的动态路由
-export function getStaticPaths() {
-  return articles.map((article) => ({
+export async function getStaticPaths() {
+    const posts = await getCollection("blog");
+    return posts.map((post) => ({
     params: {
-      slug: article.slug,
+      slug: post.id,
     },
     props: {
-      article,
+      post,
     },
   }));
 }
 
-const {article}=Astro.props;
+const {post}=Astro.props;
+
+const { Content } = await render(post);
 ---
 <!-- 动态路由 -->
  <BaseLayout>
  <article>
-    <h1>{article.title}</h1>
+    <h1>{post.data.title}</h1>
 
-    <p>{article.description}</p>
+    <p>{post.data.description}</p>
+
+     <time>
+      {post.data.pubDate.toLocaleDateString("zh-CN")}
+    </time>
+
+    <hr />
+
+    <Content />
   </article>
 </BaseLayout>
