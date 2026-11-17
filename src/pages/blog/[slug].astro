@@ -1,0 +1,26 @@
+---
+import BaseLayout  from "../../layouts/BaseLayout.astro";
+import {articles}  from "../../data/articles";
+
+// 指定要静态生成的动态路由
+export function getStaticPaths() {
+  return articles.map((article) => ({
+    params: {
+      slug: article.slug,
+    },
+    props: {
+      article,
+    },
+  }));
+}
+
+const {article}=Astro.props;
+---
+<!-- 动态路由 -->
+ <BaseLayout>
+ <article>
+    <h1>{article.title}</h1>
+
+    <p>{article.description}</p>
+  </article>
+</BaseLayout>
