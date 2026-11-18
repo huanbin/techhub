@@ -2,12 +2,15 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
 
-// 读取所有文章
-const posts = await getCollection("blog",({ data }) => data.draft !== true);
+const posts = await getCollection(
+  "blog",
+  ({ data }) => data.draft !== true
+);
 
-// 按发布日期倒序排列
 const sortedPosts = posts.sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  (a, b) =>
+    b.data.pubDate.valueOf() -
+    a.data.pubDate.valueOf()
 );
 ---
 
@@ -18,12 +21,16 @@ const sortedPosts = posts.sort(
       <p>记录技术学习、实践与思考。</p>
     </header>
 
-  <div class="article-list">
+    <div class="article-list">
       {
         sortedPosts.map((post) => (
           <article class="article-card">
             <div class="meta">
-              <span>{post.data.category}</span>
+              <a
+                href={`/category/${post.data.category.slug}`}
+              >
+                {post.data.category.name}
+              </a>
 
               <time>
                 {post.data.pubDate.toLocaleDateString("zh-CN")}
@@ -41,7 +48,9 @@ const sortedPosts = posts.sort(
             <div class="tags">
               {
                 post.data.tags.map((tag) => (
-                  <span>#{tag}</span>
+                  <a href={`/tag/${tag.slug}`}>
+                    #{tag.name}
+                  </a>
                 ))
               }
             </div>
@@ -86,8 +95,12 @@ const sortedPosts = posts.sort(
   .meta {
     display: flex;
     justify-content: space-between;
-    color: #6b7280;
     font-size: 14px;
+  }
+
+  .meta a {
+    color: #2563eb;
+    text-decoration: none;
   }
 
   .article-card p {
@@ -98,7 +111,11 @@ const sortedPosts = posts.sort(
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-    color: #2563eb;
     font-size: 14px;
+  }
+
+  .tags a {
+    color: #2563eb;
+    text-decoration: none;
   }
 </style>

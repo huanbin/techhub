@@ -12,8 +12,19 @@ const blog = defineCollection({
 		title: z.string(),
 		description: z.string(),
 		pubDate: z.coerce.date(),
-		category: z.string(),
-		tags: z.array(z.string()),
+		//显示和url分离
+		category: z.object({
+			//用于页面显示
+			name: z.string(),
+			//用于url
+			slug: z.string(),
+		}),
+		tags: z.array(
+			z.object({
+				name: z.string(),
+				slug: z.string(),
+			}),
+		),
 		author: z.string(),
 		//草稿
 		draft: z.boolean().default(false),

@@ -2,12 +2,19 @@
 title: "Astro 入门"
 description: "学习 Astro 的核心架构"
 pubDate: 2026-11-18
-category: "astro"
+
+category:
+    name: "Astro"
+    slug: "astro"
+
 tags:
-    - astro
-    - islands
-    - ssr
-    - tcp
+    - name: "Astro"
+      slug: "astro"
+    - name: "Islands"
+      slug: "islands"
+    - name: "SSR"
+      slug: "ssr"
+
 author: "TechHub"
 draft: false
 ---

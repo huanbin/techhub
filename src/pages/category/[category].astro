@@ -9,35 +9,42 @@ export async function getStaticPaths() {
   );
 
   const categories = [
-    ...new Set(
-      posts.map((post) => post.data.category)
+    ...new Map(
+      posts.map((post) => [
+        post.data.category.slug,
+        post.data.category.name,
+      ])
     ),
   ];
 
-  return categories.map((category) => ({
+  return categories.map(([slug, name]) => ({
     params: {
-      category: category.toLowerCase(),
+      category: slug,
     },
+
     props: {
-      category,
+      name,
+      slug,
     },
   }));
 }
 
-const { category } = Astro.props;
+const { name, slug } = Astro.props;
 
 const posts = await getCollection(
   "blog",
   ({ data }) =>
     data.draft !== true &&
-    data.category === category
+    data.category.slug === slug
 );
 ---
 
 <BaseLayout>
-  <h1>{category}</h1>
+  <main>
+    <h1>{name}</h1>
 
-  <div>
+    <p>分类：{slug}</p>
+
     {
       posts.map((post) => (
         <article>
@@ -51,5 +58,5 @@ const posts = await getCollection(
         </article>
       ))
     }
-  </div>
+  </main>
 </BaseLayout>

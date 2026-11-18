@@ -2,11 +2,19 @@
 title: "React Islands"
 description: "理解 Astro 中的 React Islands"
 pubDate: 2026-11-17
-category: "React"
+
+category:
+    name: "React"
+    slug: "react"
+
 tags:
-    - react
-    - islands
-    - javascript
+    - name: "React"
+      slug: "react"
+    - name: "Islands"
+      slug: "islands"
+    - name: "JavaScript"
+      slug: "javascript"
+
 author: "TechHub"
 draft: false
 ---

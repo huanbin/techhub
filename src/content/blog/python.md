@@ -2,12 +2,19 @@
 title: "Python 网络编程"
 description: "使用 Python 学习计算机网络"
 pubDate: 2026-11-16
-category: "python"
+
+category:
+    name: "Python"
+    slug: "python"
+
 tags:
-    - python
-    - socket
-    - tcp
-    - 网络编程
+    - name: "网络编程"
+      slug: "network"
+    - name: "Socket"
+      slug: "socket"
+    - name: "TCP"
+      slug: "tcp"
+
 author: "TechHub"
 draft: false
 ---

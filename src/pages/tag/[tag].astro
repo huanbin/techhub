@@ -8,46 +8,55 @@ export async function getStaticPaths() {
     ({ data }) => data.draft !== true
   );
 
-  const tags = [
-    ...new Set(
-      posts.flatMap((post) => post.data.tags)
-    ),
-  ];
+  const tags = new Map<string, string>();
 
-  return tags.map((tag) => ({
+  for (const post of posts) {
+    for (const tag of post.data.tags) {
+      tags.set(tag.slug, tag.name);
+    }
+  }
+
+  return [...tags].map(([slug, name]) => ({
     params: {
-      tag: tag.toLowerCase(),
+      tag: slug,
     },
+
     props: {
-      tag,
+      name,
+      slug,
     },
   }));
 }
 
-const { tag } = Astro.props;
+const { name, slug } = Astro.props;
 
 const posts = await getCollection(
   "blog",
   ({ data }) =>
     data.draft !== true &&
-    data.tags.includes(tag)
+    //筛选包含slug标签的post
+    data.tags.some((tag) => tag.slug === slug)
 );
 ---
 
 <BaseLayout>
-  <h1>#{tag}</h1>
+  <main>
+    <h1>#{name}</h1>
 
-  {
-    posts.map((post) => (
-      <article>
-        <h2>
-          <a href={`/blog/${post.id}`}>
-            {post.data.title}
-          </a>
-        </h2>
+    <p>标签：{slug}</p>
 
-        <p>{post.data.description}</p>
-      </article>
-    ))
-  }
+    {
+      posts.map((post) => (
+        <article>
+          <h2>
+            <a href={`/blog/${post.id}`}>
+              {post.data.title}
+            </a>
+          </h2>
+
+          <p>{post.data.description}</p>
+        </article>
+      ))
+    }
+  </main>
 </BaseLayout>
