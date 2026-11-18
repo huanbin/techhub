@@ -12,6 +12,11 @@ const blog = defineCollection({
 		title: z.string(),
 		description: z.string(),
 		pubDate: z.coerce.date(),
+		category: z.string(),
+		tags: z.array(z.string()),
+		author: z.string(),
+		//草稿
+		draft: z.boolean().default(false),
 	}),
 });
 // 注冊集合blog

@@ -1,0 +1,53 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const posts = await getCollection(
+    "blog",
+    ({ data }) => data.draft !== true
+  );
+
+  const tags = [
+    ...new Set(
+      posts.flatMap((post) => post.data.tags)
+    ),
+  ];
+
+  return tags.map((tag) => ({
+    params: {
+      tag: tag.toLowerCase(),
+    },
+    props: {
+      tag,
+    },
+  }));
+}
+
+const { tag } = Astro.props;
+
+const posts = await getCollection(
+  "blog",
+  ({ data }) =>
+    data.draft !== true &&
+    data.tags.includes(tag)
+);
+---
+
+<BaseLayout>
+  <h1>#{tag}</h1>
+
+  {
+    posts.map((post) => (
+      <article>
+        <h2>
+          <a href={`/blog/${post.id}`}>
+            {post.data.title}
+          </a>
+        </h2>
+
+        <p>{post.data.description}</p>
+      </article>
+    ))
+  }
+</BaseLayout>
