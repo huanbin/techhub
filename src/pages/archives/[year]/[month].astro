@@ -1,0 +1,95 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection } from "astro:content";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection(
+    "blog",
+    ({ data }) => data.draft !== true
+  );
+
+  const months = new Set<string>();
+
+  for (const post of posts) {
+    const date = post.data.pubDate;
+
+    const year = date.getFullYear();
+    const month = String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+    months.add(`${year}/${month}`);
+  }
+
+  return [...months].map((value) => {
+    const [year, month] = value.split("/");
+
+    return {
+      params: {
+        year,
+        month,
+      },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+const { year, month } = Astro.params;
+
+const posts = await getCollection(
+  "blog",
+  ({ data }) => {
+    if (data.draft) {
+      return false;
+    }
+
+    const date = data.pubDate;
+
+    const postYear = date.getFullYear();
+    const postMonth = String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+    return (
+      String(postYear) === year &&
+      postMonth === month
+    );
+  }
+);
+
+posts.sort(
+  (a, b) =>
+    b.data.pubDate.valueOf() -
+    a.data.pubDate.valueOf()
+);
+---
+
+<BaseLayout>
+  <main>
+    <h1>
+      {year} 年 {Number(month)} 月
+    </h1>
+
+    <p>
+      共 {posts.length} 篇文章
+    </p>
+
+    {posts.map((post) => (
+      <article>
+        <h2>
+          <a href={`/blog/${post.id}`}>
+            {post.data.title}
+          </a>
+        </h2>
+
+        <p>
+          {post.data.description}
+        </p>
+
+        <time datetime={post.data.pubDate.toISOString()}>
+          {post.data.pubDate.toLocaleDateString("zh-CN")}
+        </time>
+      </article>
+    ))}
+  </main>
+</BaseLayout>

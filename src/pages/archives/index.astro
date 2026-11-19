@@ -1,0 +1,65 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const posts = await getCollection(
+  "blog",
+  ({ data }) => data.draft !== true
+);
+
+const archives = new Map<
+  number,
+  Map<number, number>
+>();
+
+for (const post of posts) {
+  const year = post.data.pubDate.getFullYear();
+  const month = post.data.pubDate.getMonth() + 1;
+
+  if (!archives.has(year)) {
+    archives.set(year, new Map());
+  }
+
+  const months = archives.get(year)!;
+
+  months.set(
+    month,
+    (months.get(month) ?? 0) + 1
+  );
+}
+
+const sortedArchives = [...archives.entries()]
+  .sort(([yearA], [yearB]) => yearB - yearA)
+  .map(([year, months]) => ({
+    year,
+    months: [...months.entries()].sort(
+      ([monthA], [monthB]) => monthB - monthA
+    ),
+  }));
+---
+
+<BaseLayout>
+  <main>
+    <h1>文章归档</h1>
+
+    {sortedArchives.map(({ year, months }) => (
+      <section>
+        <h2>{year}</h2>
+
+        <ul>
+          {months.map(([month, count]) => (
+            <li>
+              <a href={`/archives/${year}/${month}`}>
+                {month} 月
+              </a>
+
+              <span>
+                （{count} 篇）
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </main>
+</BaseLayout>

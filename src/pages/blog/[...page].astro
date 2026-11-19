@@ -1,0 +1,76 @@
+---
+import type { GetStaticPaths } from "astro";
+import  BaseLayout  from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import ArticleSearch from "../../components/ArticleSearch";
+
+// satisfies GetStaticPaths:让TypeScript检查函数getStaticPaths符合Astro标准（返回分页数据）
+export const  getStaticPaths =(async ({paginate }) => {
+    // 获取文章，{ data }：对象解构，解构post对象，直接取出data
+    const posts = await getCollection("blog",({ data }) => data.draft !== true);
+    // 排序
+    const sortedPosts = posts.sort((a, b) =>
+      b.data.pubDate.valueOf() -
+      a.data.pubDate.valueOf()
+    );
+
+    return paginate(sortedPosts,{
+        pageSize:2,
+    });
+}) satisfies GetStaticPaths;
+
+
+const { page } = Astro.props;
+
+const articles = page.data.map((post) => ({
+  id: post.id,
+  title: post.data.title,
+  description: post.data.description,
+  category: post.data.category,
+  tags: post.data.tags,
+}));
+---
+<BaseLayout>
+  <main>
+    <header>
+      <h1>技术文章</h1>
+
+      <p>
+        共 {page.total} 篇文章，
+        第 {page.currentPage} / {page.lastPage} 页
+      </p>
+    </header>
+
+    <ArticleSearch articles={articles} client:load/>
+
+    <nav aria-label="文章分页">
+      {page.url.first && (
+        <a href={page.url.first}>
+          第一页
+        </a>
+      )}
+
+      {page.url.prev && (
+        <a href={page.url.prev}>
+          上一页
+        </a>
+      )}
+
+      <span>
+        第 {page.currentPage} / {page.lastPage} 页
+      </span>
+
+      {page.url.next && (
+        <a href={page.url.next}>
+          下一页
+        </a>
+      )}
+
+      {page.url.last && (
+        <a href={page.url.last}>
+          最后一页
+        </a>
+      )}
+    </nav>
+  </main>
+</BaseLayout>
