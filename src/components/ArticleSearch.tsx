@@ -61,7 +61,8 @@ function writeFiltersToURL(filters: SearchFilters) {
     } else {
         url.searchParams.delete("tag");
     }
-    // 更新当前历史
+    // 更新当前URL历史记录，修改浏览器地址栏中的 URL，但不刷新页面，也不重新加载页面内容。
+    // replaceState更新，pushState新增
     window.history.replaceState({}, "", url);
 }
 
