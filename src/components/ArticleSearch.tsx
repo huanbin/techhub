@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 
 interface Category {
     name: string;
@@ -22,25 +23,96 @@ interface Props {
     articles: Article[];
 }
 
+interface SearchFilters {
+    query: string;
+    category: string;
+    tag: string;
+}
+
+// 从 URL 读取筛选条件
+function readFiltersFromURL(): SearchFilters {
+    const params = new URLSearchParams(window.location.search);
+
+    return {
+        query: params.get("q") ?? "",
+        category: params.get("category") ?? "all",
+        tag: params.get("tag") ?? "all",
+    };
+}
+
+// 将筛选条件写入 URL
+function writeFiltersToURL(filters: SearchFilters) {
+    const url = new URL(window.location.href);
+
+    if (filters.query.trim()) {
+        url.searchParams.set("q", filters.query.trim());
+    } else {
+        url.searchParams.delete("q");
+    }
+
+    if (filters.category !== "all") {
+        url.searchParams.set("category", filters.category);
+    } else {
+        url.searchParams.delete("category");
+    }
+
+    if (filters.tag !== "all") {
+        url.searchParams.set("tag", filters.tag);
+    } else {
+        url.searchParams.delete("tag");
+    }
+    // 更新当前历史
+    window.history.replaceState({}, "", url);
+}
+
 export default function ArticleSearch({ articles }: Props) {
-    /*
-     * =========================
-     * State
-     * =========================
-     */
-
     const [query, setQuery] = useState("");
-
     const [category, setCategory] = useState("all");
-
     const [tag, setTag] = useState("all");
 
-    /*
-     * =========================
-     * 从文章数据中提取分类
-     * =========================
-     */
+    // 标记：是否已经从 URL 初始化
+    const [urlReady, setUrlReady] = useState(false);
 
+    // 第一次加载：从 URL 恢复筛选条件
+    useEffect(() => {
+        const filters = readFiltersFromURL();
+
+        setQuery(filters.query);
+        setCategory(filters.category);
+        setTag(filters.tag);
+
+        setUrlReady(true);
+    }, []);
+
+    // 筛选条件变化：同步到 URL
+    useEffect(() => {
+        if (!urlReady) return;
+
+        writeFiltersToURL({
+            query,
+            category,
+            tag,
+        });
+    }, [query, category, tag, urlReady]);
+
+    // 处理浏览器前进/后退
+    useEffect(() => {
+        function handlePopState() {
+            const filters = readFiltersFromURL();
+
+            setQuery(filters.query);
+            setCategory(filters.category);
+            setTag(filters.tag);
+        }
+
+        window.addEventListener("popstate", handlePopState);
+
+        return () => {
+            window.removeEventListener("popstate", handlePopState);
+        };
+    }, []);
+
+    // 提取当前页面中出现的分类
     const categories = Array.from(
         new Map(
             articles.map((article) => [
@@ -50,201 +122,129 @@ export default function ArticleSearch({ articles }: Props) {
         ).values()
     );
 
-    /*
-     * =========================
-     * 从文章数据中提取标签
-     * =========================
-     */
-
+    // 提取当前页面中出现的标签
     const tags = Array.from(
         new Map(
             articles
                 .flatMap((article) => article.tags)
-                .map((tag) => [tag.slug, tag])
+                .map((item) => [item.slug, item])
         ).values()
     );
 
-    /*
-     * =========================
-     * 标准化搜索关键词
-     * =========================
-     */
-
     const normalizedQuery = query.trim().toLowerCase();
 
-    /*
-     * =========================
-     * 派生数据
-     * =========================
-     */
-
+    // 根据三个条件筛选文章
     const filteredArticles = articles.filter((article) => {
-        /*
-         * 1. 关键词匹配
-         */
-
         const matchesQuery =
             !normalizedQuery ||
             [
                 article.title,
                 article.description,
                 article.category.name,
-                ...article.tags.map((tag) => tag.name),
+                ...article.tags.map((item) => item.name),
             ]
                 .join(" ")
                 .toLowerCase()
                 .includes(normalizedQuery);
 
-        /*
-         * 2. 分类匹配
-         */
-
         const matchesCategory =
             category === "all" ||
             article.category.slug === category;
 
-        /*
-         * 3. 标签匹配
-         */
-
         const matchesTag =
             tag === "all" ||
-            article.tags.some(
-                (articleTag) => articleTag.slug === tag
-            );
+            article.tags.some((item) => item.slug === tag);
 
-        /*
-         * 三个条件必须同时满足
-         */
-
-        return (
-            matchesQuery &&
-            matchesCategory &&
-            matchesTag
-        );
+        return matchesQuery && matchesCategory && matchesTag;
     });
 
-    /*
-     * =========================
-     * UI
-     * =========================
-     */
-
     return (
-        <section>
-            {/* 关键词搜索 */}
-
-            <div>
+        <section className="space-y-5">
+            <div className="flex flex-wrap gap-3">
                 <input
                     type="search"
                     placeholder="搜索文章..."
                     value={query}
-                    onChange={(event) =>
-                        setQuery(event.target.value)
-                    }
+                    onChange={(event) => setQuery(event.target.value)}
+                    className="
+            rounded-lg border border-gray-300
+            bg-white px-4 py-2
+            dark:border-gray-700 dark:bg-gray-900
+          "
                 />
-            </div>
-
-            {/* 分类 */}
-
-            <div>
-                <label htmlFor="category">
-                    分类：
-                </label>
 
                 <select
-                    id="category"
                     value={category}
-                    onChange={(event) =>
-                        setCategory(event.target.value)
-                    }
+                    onChange={(event) => setCategory(event.target.value)}
+                    className="
+            rounded-lg border border-gray-300
+            bg-white px-3 py-2
+            dark:border-gray-700 dark:bg-gray-900
+          "
                 >
-                    <option value="all">
-                        全部分类
-                    </option>
+                    <option value="all">全部分类</option>
 
-                    {categories.map((category) => (
-                        <option
-                            key={category.slug}
-                            value={category.slug}
-                        >
-                            {category.name}
+                    {categories.map((item) => (
+                        <option key={item.slug} value={item.slug}>
+                            {item.name}
                         </option>
                     ))}
                 </select>
-            </div>
-
-            {/* 标签 */}
-
-            <div>
-                <label htmlFor="tag">
-                    标签：
-                </label>
 
                 <select
-                    id="tag"
                     value={tag}
-                    onChange={(event) =>
-                        setTag(event.target.value)
-                    }
+                    onChange={(event) => setTag(event.target.value)}
+                    className="
+            rounded-lg border border-gray-300
+            bg-white px-3 py-2
+            dark:border-gray-700 dark:bg-gray-900
+          "
                 >
-                    <option value="all">
-                        全部标签
-                    </option>
+                    <option value="all">全部标签</option>
 
-                    {tags.map((tag) => (
-                        <option
-                            key={tag.slug}
-                            value={tag.slug}
-                        >
-                            {tag.name}
+                    {tags.map((item) => (
+                        <option key={item.slug} value={item.slug}>
+                            {item.name}
                         </option>
                     ))}
                 </select>
             </div>
 
-            {/* 结果数量 */}
+            <p>找到 {filteredArticles.length} 篇文章</p>
 
-            <p>
-                找到 {filteredArticles.length} 篇文章
-            </p>
-
-            {/* 文章列表 */}
-
-            <div>
+            <div className="grid gap-4">
                 {filteredArticles.map((article) => (
-                    <article key={article.id}>
-                        <h2>
+                    <article
+                        key={article.id}
+                        className="
+              rounded-xl border border-gray-200
+              bg-white p-5
+              dark:border-gray-800 dark:bg-gray-900
+            "
+                    >
+                        <h2 className="text-xl font-bold">
                             <a href={`/blog/${article.id}`}>
                                 {article.title}
                             </a>
                         </h2>
 
-                        <p>
+                        <p className="mt-2 text-gray-600 dark:text-gray-400">
                             {article.description}
                         </p>
 
-                        <div>
-                            <span>
-                                {article.category.name}
-                            </span>
+                        <div className="mt-3 flex flex-wrap gap-2 text-sm">
+                            <span>{article.category.name}</span>
 
-                            {article.tags.map((tag) => (
-                                <span key={tag.slug}>
-                                    #{tag.name}
-                                </span>
+                            {article.tags.map((item) => (
+                                <span key={item.slug}>#{item.name}</span>
                             ))}
                         </div>
                     </article>
                 ))}
             </div>
 
-            {/* 无结果 */}
-
             {filteredArticles.length === 0 && (
-                <p>
-                    没有找到相关文章。
-                </p>
+                <p>没有找到相关文章。</p>
             )}
         </section>
     );

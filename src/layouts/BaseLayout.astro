@@ -1,7 +1,19 @@
 ---
-import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import "../styles/global.css";
+
+
+interface Props {
+  title?: string;
+}
+
+const {
+  title = "TechHub",
+} = Astro.props;
 ---
+
+<!doctype html>
 
 <html lang="zh-CN">
   <head>
@@ -12,16 +24,21 @@ import Footer from "../components/Footer.astro";
       content="width=device-width"
     />
 
-    <title>TechHub</title>
+    <title>{title}</title>
+    <!-- 初始化主题，解决主题切换闪烁问题 -->
+    <!-- is:inline:让Astro原样输出 -->
+    <script is:inline>
+      const theme = localStorage.getItem("theme");
+
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
   </head>
 
-  <body>
-    <Header title="My TechHub"/>
-
-    <main>
-      <slot />
-    </main>
-
-    <Footer />
+  <body class="bg-white text-gray-900 transition-colors dark:bg-gray-950 dark:text-gray-100">
+    <Header/>
+    <slot />
+    <Footer/>
   </body>
 </html>
